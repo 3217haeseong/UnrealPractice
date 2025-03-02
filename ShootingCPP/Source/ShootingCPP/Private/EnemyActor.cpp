@@ -6,6 +6,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "EngineUtils.h"
 #include "PlayerPawn.h"
+#include "ShootingGameModeBase.h"
+
 
 // Sets default values
 AEnemyActor::AEnemyActor()
@@ -19,6 +21,8 @@ AEnemyActor::AEnemyActor()
 
 	MeshComp = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Static Mesh"));
 	MeshComp->SetupAttachment(BoxComp);
+
+	BoxComp->SetCollisionProfileName(TEXT("Enemy"));
 }
 
 // Called when the game starts or when spawned
@@ -42,6 +46,8 @@ void AEnemyActor::BeginPlay()
 	else {
 		dir = GetActorForwardVector();
 	}
+
+	BoxComp->OnComponentBeginOverlap.AddDynamic(this,&AEnemyActor::OnEnemyOverlap);
 	
 }
 
@@ -53,5 +59,24 @@ void AEnemyActor::Tick(float DeltaTime)
 	FVector NewLocation = GetActorLocation() + DeltaTime * dir * MoveSpeed;
 
 	SetActorLocation(NewLocation);
+}
+
+void AEnemyActor::OnEnemyOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	APlayerPawn* Player = Cast<APlayerPawn>(OtherActor);
+
+	if (Player != nullptr)
+	{
+		OtherActor->Destroy();
+
+		AShootingGameModeBase* CurrentGameMode = Cast<AShootingGameModeBase>(GetWorld()->GetAuthGameMode());
+
+		if (CurrentGameMode != nullptr)
+		{
+			CurrentGameMode->ShowMenu();
+		}
+	}
+
+	Destroy();
 }
 

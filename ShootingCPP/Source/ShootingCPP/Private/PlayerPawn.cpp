@@ -29,6 +29,14 @@ APlayerPawn::APlayerPawn()
 
 	FirePosition = CreateDefaultSubobject<UArrowComponent>(TEXT("Fire Position"));
 	FirePosition->SetupAttachment(BoxComp);
+
+	BoxComp->SetGenerateOverlapEvents(true);
+	BoxComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	BoxComp->SetCollisionObjectType(ECC_GameTraceChannel1);
+
+	BoxComp->SetCollisionResponseToAllChannels(ECR_Ignore);
+	BoxComp->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Overlap);
+	BoxComp->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
 }
 
 // Called when the game starts or when spawned
@@ -59,7 +67,7 @@ void APlayerPawn::Tick(float DeltaTime)
 	dir.Normalize();
 
 	FVector NewLocation = GetActorLocation() + dir * MoveSpeed * DeltaTime;
-	SetActorLocation(NewLocation);
+	SetActorLocation(NewLocation, true);
 
 }
 
